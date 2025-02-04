@@ -6,8 +6,11 @@ RUN apt-get update && apt-get install -y \
     libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pnpm
+# Install and setup pnpm
 RUN npm install -g pnpm
+RUN pnpm setup
+ENV PNPM_HOME="/root/.local/share/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
 # Set working directory
 WORKDIR /app
@@ -15,8 +18,13 @@ WORKDIR /app
 # Clone Rebar repository
 RUN git clone https://github.com/Stuyk/rebar-altv/ .
 
-# Install dependencies
-RUN pnpm install
+# Enable pnpm store
+RUN pnpm config set store-dir /app/.pnpm-store
+
+# Install dependencies with proper environment
+SHELL ["/bin/bash", "-c"]
+RUN source ~/.bashrc && \
+    pnpm install
 
 # Download alt:V binaries
 RUN pnpm binaries
