@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: rebar-mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - rebar-network
+
+  rebar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rebar-altv
+    restart: unless-stopped
+    ports:
+      - "7788:7788/udp"  # Default alt:V server port
+      - "7788:7788/tcp"  # Default alt:V server port
+    depends_on:
+      - mongodb
+    volumes:
+      - rebar_data:/app/data
+    networks:
+      - rebar-network
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/rebar
+
+networks:
+  rebar-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  rebar_data: 
